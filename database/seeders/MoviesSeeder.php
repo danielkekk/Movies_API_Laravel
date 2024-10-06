@@ -13,6 +13,7 @@ class MoviesSeeder extends Seeder
      */
     public function run(): void
     {
+        //Save 10 movies
         for($i=1; $i<=10; $i++) {
             Movie::create([
                 'movies_id' => $i,
