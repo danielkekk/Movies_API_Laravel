@@ -4,15 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use App\Business\Services\MovieService;
-use App\Enums\AgeRating;
-use App\Enums\Language;
-use Illuminate\Validation\Rule;
 
 class MovieController extends Controller
 {
-    protected $movieService;
+    protected MovieService $movieService;
 
     public function __construct(MovieService $service)
     {
@@ -24,19 +20,18 @@ class MovieController extends Controller
      */
     public function index()
     {
-        $movies = $this->movieService->getAllMovies();
+        $result = ['status' => 200];
 
-        return response()->json([
-            'data' => $movies
-        ]);
-    }
+        try {
+            $result['data'] = $this->movieService->getAllMovies();
+        } catch(\Exception $e) {
+            $result = [
+                'status' => 500,
+                'error' => $e->getMessage(),
+            ];
+        }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        return response()->json($result, $result['status']);
     }
 
     /**
@@ -45,24 +40,19 @@ class MovieController extends Controller
     public function store(Request $request)
     {
         $data = $request->all();
-        $validator = Validator::make($data,[
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'age_rating' => [Rule::enum(AgeRating::class)],
-            'lang' => [Rule::enum(Language::class)],
-            'cover_img' => 'required|string|max:255',
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'errors' => $validator->errors()
-            ], 400);
-        }
-        
-        $movie = $this->movieService->storeMovie($data);
 
-        return response()->json([
-            'data' => $movie
-        ], 201);
+        $result = ['status' => 201];
+
+        try {
+            $result['data'] = $this->movieService->storeMovie($data);
+        } catch(\Exception $e) {
+            $result = [
+                'status' => 500,
+                'error' => $e->getMessage(),
+            ];
+        }
+
+        return response()->json($result, $result['status']);
     }
 
     /**
@@ -70,11 +60,18 @@ class MovieController extends Controller
      */
     public function show(string $id)
     {
-        $movie = $this->movieService->getMovie($id);
+        $result = ['status' => 200];
 
-        return response()->json([
-            'data' => $movie
-        ]);
+        try {
+            $result['data'] = $this->movieService->getMovie($id);
+        } catch(\Exception $e) {
+            $result = [
+                'status' => 500,
+                'error' => $e->getMessage(),
+            ];
+        }
+
+        return response()->json($result, $result['status']);
     }
 
     /**
@@ -82,11 +79,18 @@ class MovieController extends Controller
      */
     public function edit(string $id)
     {
-        $movie = $this->movieService->getMovie($id);
+        $result = ['status' => 200];
 
-        return response()->json([
-            'data' => $movie
-        ]);
+        try {
+            $result['data'] = $this->movieService->getMovie($id);
+        } catch(\Exception $e) {
+            $result = [
+                'status' => 500,
+                'error' => $e->getMessage(),
+            ];
+        }
+
+        return response()->json($result, $result['status']);
     }
 
     /**
@@ -94,30 +98,20 @@ class MovieController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $movie = $this->movieService->getMovie($id);
-        if (!$movie) {
-            return response()->json(["error" => "Movie doesn't exist"], 404);
-        }
-
         $data = $request->all();
-        $validator = Validator::make($data,[
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'age_rating' => [Rule::enum(AgeRating::class)],
-            'lang' => [Rule::enum(Language::class)],
-            'cover_img' => 'required|string|max:255',
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'errors' => $validator->errors()
-            ], 400);
-        }
-        
-        $movie = $this->movieService->updateMovie($movie, $data);
 
-        return response()->json([
-            'data' => $movie
-        ], 200);
+        $result = ['status' => 200];
+
+        try {
+            $result['data'] = $this->movieService->updateMovie($id, $data);
+        } catch(\Exception $e) {
+            $result = [
+                'status' => 500,
+                'error' => $e->getMessage(),
+            ];
+        }
+
+        return response()->json($result, $result['status']);
     }
 
     /**
@@ -125,16 +119,20 @@ class MovieController extends Controller
      */
     public function destroy(string $id)
     {
-        $movie = $this->movieService->getMovie($id);
-        if (!$movie) {
-            return response()->json(["error" => 'Movie does not exist'], 404);
+        $result = [
+            'status' => 200,
+            'message' => 'Movie has been deleted successfully',
+        ];
+
+        try {
+            $result['data'] = $this->movieService->deleteById($id);
+        } catch(\Exception $e) {
+            $result = [
+                'status' => 500,
+                'error' => $e->getMessage(),
+            ];
         }
-        
-        $isDeleted = $this->movieService->deleteMovie($movie);
-        if(!$isDeleted) {
-            return response()->json(["error" => 'Movie cannot be removed'], 400);
-        }
-    
-        return response()->json(['message' => 'Movie has been deleted successfully'], 200);
+
+        return response()->json($result, $result['status']);
     }
 }
