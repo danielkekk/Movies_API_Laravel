@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
 
 class ScreeningController extends Controller
 {
-    protected $ScreeningService;
+    protected ScreeningService $ScreeningService;
 
     public function __construct(ScreeningService $service)
     {
