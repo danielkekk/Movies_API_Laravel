@@ -4,9 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use App\Business\Services\ScreeningService;
-use Illuminate\Validation\Rule;
 
 class ScreeningController extends Controller
 {
@@ -22,11 +20,18 @@ class ScreeningController extends Controller
      */
     public function index()
     {
-        $screenings = $this->screeningService->getAllScreenings();
+        $result = ['status' => 200];
 
-        return response()->json([
-            'data' => $screenings
-        ]);
+        try {
+            $result['data'] = $this->screeningService->getAllScreenings();
+        } catch(\Exception $e) {
+            $result = [
+                'status' => 500,
+                'error' => $e->getMessage(),
+            ];
+        }
+
+        return response()->json($result, $result['status']);
     }
 
     /**
@@ -34,19 +39,18 @@ class ScreeningController extends Controller
      */
     public function showScreeningsByMovie(string $id)
     {
-        $screenings = $this->screeningService->getScreeningsByMovie($id);
+        $result = ['status' => 200];
 
-        return response()->json([
-            'data' => $screenings
-        ]);
-    }
+        try {
+            $result['data'] = $this->screeningService->getScreeningsByMovie($id);
+        } catch(\Exception $e) {
+            $result = [
+                'status' => 500,
+                'error' => $e->getMessage(),
+            ];
+        }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        return response()->json($result, $result['status']);
     }
 
     /**
@@ -55,23 +59,18 @@ class ScreeningController extends Controller
     public function store(Request $request)
     {
         $data = $request->all();
-        $validator = Validator::make($data,[
-            'movies_id' => 'required|integer|exists:movies,movies_id',
-            'screeining_time' => 'required|date_format:Y-m-d H:i:s',
-            'available_seats' => 'required|integer',
-            'url' => 'required|url:http,https|max:255',
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'errors' => $validator->errors()
-            ], 400);
-        }
-        
-        $screening = $this->screeningService->storeScreening($data);
+        $result = ['status' => 201];
 
-        return response()->json([
-            'data' => $screening
-        ], 201);
+        try {
+            $result['data'] = $this->screeningService->storeScreening($data);
+        } catch(\Exception $e) {
+            $result = [
+                'status' => 500,
+                'error' => $e->getMessage(),
+            ];
+        }
+
+        return response()->json($result, $result['status']);
     }
 
     /**
@@ -79,11 +78,18 @@ class ScreeningController extends Controller
      */
     public function show(string $id)
     {
-        $screening = $this->screeningService->getScreening($id);
+        $result = ['status' => 200];
 
-        return response()->json([
-            'data' => $screening
-        ]);
+        try {
+            $result['data'] = $this->screeningService->getScreening($id);
+        } catch(\Exception $e) {
+            $result = [
+                'status' => 500,
+                'error' => $e->getMessage(),
+            ];
+        }
+
+        return response()->json($result, $result['status']);
     }
 
     /**
@@ -91,11 +97,18 @@ class ScreeningController extends Controller
      */
     public function edit(string $id)
     {
-        $screening = $this->screeningService->getScreening($id);
+        $result = ['status' => 200];
 
-        return response()->json([
-            'data' => $screening
-        ]);
+        try {
+            $result['data'] = $this->screeningService->getScreening($id);
+        } catch(\Exception $e) {
+            $result = [
+                'status' => 500,
+                'error' => $e->getMessage(),
+            ];
+        }
+
+        return response()->json($result, $result['status']);
     }
 
     /**
@@ -103,29 +116,20 @@ class ScreeningController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $screening = $this->screeningService->getScreening($id);
-        if (!$screening) {
-            return response()->json(["error" => "Screening doesn't exist"], 404);
-        }
-
         $data = $request->all();
-        $validator = Validator::make($data,[
-            'movies_id' => 'required|integer|exists:movies,movies_id',
-            'screeining_time' => 'required|date_format:Y-m-d H:i:s',
-            'available_seats' => 'required|integer',
-            'url' => 'required|url:http,https|max:255',
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'errors' => $validator->errors()
-            ], 400);
-        }
-        
-        $screening = $this->screeningService->updateScreening($screening, $data);
 
-        return response()->json([
-            'data' => $screening
-        ], 200);
+        $result = ['status' => 200];
+
+        try {
+            $result['data'] = $this->screeningService->updateScreening($id, $data);
+        } catch(\Exception $e) {
+            $result = [
+                'status' => 500,
+                'error' => $e->getMessage(),
+            ];
+        }
+
+        return response()->json($result, $result['status']);
     }
 
     /**
@@ -133,16 +137,20 @@ class ScreeningController extends Controller
      */
     public function destroy(string $id)
     {
-        $screening = $this->screeningService->getScreening($id);
-        if (!$screening) {
-            return response()->json(["error" => 'Screening does not exist'], 404);
+        $result = [
+            'status' => 200,
+            'message' => 'Screening has been deleted successfully',
+        ];
+
+        try {
+            $result['data'] = $this->screeningService->deleteById($id);
+        } catch(\Exception $e) {
+            $result = [
+                'status' => 500,
+                'error' => $e->getMessage(),
+            ];
         }
-        
-        $isDeleted = $this->screeningService->deleteScreening($screening);
-        if(!$isDeleted) {
-            return response()->json(["error" => 'Screening cannot be removed'], 400);
-        }
-    
-        return response()->json(['message' => 'Screening has been deleted successfully'], 200);
+
+        return response()->json($result, $result['status']);
     }
 }
